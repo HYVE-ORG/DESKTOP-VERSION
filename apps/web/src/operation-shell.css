@@ -1,0 +1,53 @@
+/* Shared operational shell adapted from the local Via Sync frontend.
+   Domain layouts remain in their components; this layer owns application chrome. */
+.app-window{--nav-bg:#f6f8fb;--nav-border:#e3e9f2;--nav-text:#657891;--nav-strong:#182135;--nav-hover:#edf3ff;--nav-active:#e8f0ff}
+.app-window .sidebar{width:224px;background:var(--nav-bg);color:var(--nav-text);border-right:1px solid var(--nav-border)}
+.app-window .sidebar-brand{height:82px;padding:0 23px}
+.app-window .sidebar .brand{color:var(--nav-strong);font-size:26px}
+.app-window .sidebar .brand-dot{color:#6e9bff}
+.app-window .sidebar .brand-mark{background:#0057ff;color:white;border-radius:7px}
+.app-window .sidebar .org-switch{margin:0 14px 22px;background:var(--surface);border-color:var(--nav-border);border-radius:9px;color:var(--nav-text)}
+.app-window .sidebar .org-switch strong{color:var(--nav-strong);font-size:11px}
+.app-window .sidebar .org-switch small{color:var(--nav-text);font-size:10px}
+.app-window .sidebar .org-monogram{background:var(--app-lavender);color:var(--app-focus)}
+.app-window .sidebar .sidebar-scroll{padding:0 13px 16px}
+.app-window .sidebar .section-label{color:#93a2b9;font-size:9px;letter-spacing:1.3px}
+.app-window .sidebar .nav-item{color:var(--nav-text);border-radius:6px;min-height:39px;font-size:12px;padding:10px 12px}
+.app-window .sidebar .nav-item:hover{background:var(--nav-hover);color:var(--nav-strong)}
+.app-window .sidebar .nav-item.active{background:var(--nav-active);color:var(--app-focus);box-shadow:0 4px 12px #26375905}
+.app-window .sidebar .nav-separator{background:var(--nav-border);margin:18px 10px}
+.app-window .sidebar :is(.icon-button,.all-spaces-link,.sidebar-tools summary,.project-tree button,.space-navigation-link){color:var(--nav-text)}
+.app-window .sidebar :is(.icon-button:hover,.all-spaces-link:hover,.sidebar-tools summary:hover,.project-tree button:hover,.space-navigation-row:hover){background:var(--nav-hover);color:var(--nav-strong)}
+.app-window .sidebar :is(.space-navigation-row.current,.project-tree .selected){background:var(--nav-active);color:var(--nav-strong)}
+.app-window .sidebar .space-navigation-row.current .space-navigation-link{color:var(--nav-strong)}
+.app-window .sidebar :is(.project-tree,.sidebar-tools,.account){border-color:var(--nav-border)}
+.app-window .sidebar-bottom{background:var(--nav-bg);border-color:var(--nav-border);padding:10px 12px 0}
+.app-window .sidebar-bottom .local-label{color:var(--nav-text);border:1px solid var(--nav-border);border-radius:7px;margin:12px 0;padding:11px 9px;background:var(--surface)}
+.app-window .sidebar .account strong{color:var(--nav-strong)}
+.app-window .sidebar .account small{color:var(--nav-text)}
+.app-window .topbar{height:66px;padding:0 30px}
+.app-window .search-trigger{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;gap:8px}
+.app-window .breadcrumb{gap:10px}
+.app-window .main-content{padding:29px 30px 32px}
+.app-window .page-heading h1,.app-window .space-hub-heading h1{font-size:29px;font-weight:650;letter-spacing:-1.2px}
+.app-window :is(.panel,.stat-card,.task-card,.doc-card,.meeting-card,.space-list-card,.project-home-card){border-radius:12px;box-shadow:var(--shadow)}
+.app-window .panel-heading h2{font-size:12px;font-weight:600}
+.app-window :is(.button,.search-field,.filter-button){border-radius:7px}
+.app-window .home-quick-start{background:var(--surface);border-radius:12px;border-left:3px solid var(--accent);padding:23px 25px}
+.app-window .home-quick-start h2{font-size:22px}
+.app-window .home-numbers{gap:16px;margin-bottom:22px}
+.app-window .home-numbers>div{padding:20px;border-radius:12px;gap:14px}
+.app-window .home-numbers strong{font-size:33px;font-weight:600;font-variant-numeric:tabular-nums}
+.app-window .number-icon{width:34px;height:34px;border-radius:8px;background:var(--app-lavender);color:var(--app-focus)}
+.app-window .role-badge{background:var(--app-lavender);color:var(--app-focus)}
+.app-window :is(.space-hub-tabs,.space-settings-tabs) button.active{color:var(--app-focus);border-color:var(--app-focus)}
+.refresh-data-button{border:1px solid var(--line);border-radius:7px;width:32px;height:32px}
+.refresh-data-button[aria-busy=true] svg{animation:refresh-data .8s linear infinite}
+@keyframes refresh-data{to{transform:rotate(360deg)}}
+:root[data-theme=dark]{--accent:#77a5ff;--app-focus:#8db4ff;--app-ink:#266af4;--app-inverse:#fff;--app-selected:#22334f;--app-lavender:#22334f;--bg:#151d29;--surface:#1c2634;--text:#e8eef8;--muted:#a4b2c8;--line:#303e52;--soft:#253246}
+:root[data-theme=hybrid]{--accent:#0057ff;--app-focus:#0057ff;--app-ink:#0057ff;--app-inverse:#fff;--app-lavender:#edf3ff;--bg:#f6f8fb;--surface:#fff;--text:#182135;--muted:#65748b;--line:#e8ecf2;--soft:#eff3f9}
+@media(min-width:901px){.app-window .main-shell{margin-left:0}}
+@media(max-width:1100px){.app-window .search-trigger kbd{display:none}.app-window .topbar{padding:0 20px}.app-window .main-content{padding:24px}}
+@media(max-width:900px){.app-window .main-shell{margin-left:0}.app-window .sidebar{width:244px}.app-window .topbar{height:62px;padding:0 14px}.app-window .main-content{padding:20px 16px}.app-window .search-trigger{padding:7px}.app-window .search-trigger span{display:none}.app-window .home-quick-start{padding:20px;align-items:flex-start}.app-window .page-heading h1,.app-window .space-hub-heading h1{font-size:25px}.app-window .home-numbers{gap:12px}.app-window .home-numbers>div{padding:17px}.refresh-data-button{width:30px;height:30px}}
+@media(max-width:480px){.app-window .topbar-actions{gap:7px}.app-window .topbar-divider{display:none}.app-window .home-quick-start{flex-direction:column;gap:16px}.app-window .home-quick-start>div:last-child{justify-content:flex-start}.app-window .home-numbers strong{font-size:27px}}
+@media(prefers-reduced-motion:reduce){.refresh-data-button[aria-busy=true] svg{animation:none}}

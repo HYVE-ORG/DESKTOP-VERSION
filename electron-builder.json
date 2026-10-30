@@ -1,0 +1,18 @@
+{
+  "appId": "com.forma.desktop",
+  "productName": "Forma",
+  "directories": {"output": "release/installer-output"},
+  "artifactName": "Forma-Setup-${version}-${arch}.${ext}",
+  "win": {"target": [{"target": "nsis", "arch": ["x64"]}], "executableName": "Forma", "signAndEditExecutable": false},
+  "nsis": {
+    "oneClick": true,
+    "perMachine": false,
+    "allowElevation": false,
+    "deleteAppDataOnUninstall": false,
+    "runAfterFinish": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "differentialPackage": false,
+    "include": "apps/desktop/installer.nsh"
+  }
+}

@@ -1,0 +1,100 @@
+/* Forma's light workspace structure, guided by the supplied Hive frames.
+   This is an original implementation: it changes hierarchy and component
+   rhythm while keeping Forma's routes, roles and data model intact. */
+:root{--forma-blue:#3478e9;--forma-blue-soft:#e9f1ff;--forma-canvas:#f6f8fc;--forma-rail:#fff;--forma-icon:#7f90a7}
+.app-window{background:var(--forma-canvas)}
+.app-window .main-content{background:var(--forma-canvas);padding:42px 54px 52px;gap:14px}
+.app-window .topbar{height:82px;background:var(--forma-canvas);border-bottom:0;padding:0 54px}
+.app-window .sidebar{background:var(--forma-rail);border-right:1px solid #edf1f6}
+.app-window .sidebar .nav-item{color:var(--forma-icon)}
+.app-window .sidebar .nav-item.active{background:var(--forma-blue-soft);color:var(--forma-blue);box-shadow:inset 0 0 0 2px var(--forma-blue)}
+.app-window .topbar-actions{gap:14px}
+.app-window .quick-action-trigger{min-height:48px!important;padding:0 21px!important;border:0!important;border-radius:13px!important;background:var(--forma-blue)!important;color:#fff!important;font-size:16px!important;font-weight:550!important;box-shadow:0 8px 22px #3478e92b!important}
+.app-window .quick-action-trigger svg:first-child{width:22px;height:22px}
+.app-window .quick-action-trigger svg:last-child{width:17px;height:17px}
+.app-window .topbar :is(.refresh-data-button,.notification-button,.topbar-avatar){width:48px;height:48px;border-radius:50%;background:#fff;border:1px solid #edf1f6}
+.app-window .topbar-avatar{padding:4px;border:2px solid var(--forma-blue)}
+.app-window .topbar-avatar .avatar{width:100%!important;height:100%!important}
+.app-window .search-trigger{display:none}
+.app-window .desktop-navigation-toggle{width:40px;height:40px;border-radius:10px;background:var(--forma-blue-soft);color:var(--forma-blue)}
+.app-window .page-heading{margin:8px 0 34px;align-items:flex-start}
+.app-window .page-heading h1,.app-window .space-hub-heading h1{font-size:42px;line-height:1.06;letter-spacing:-2.1px;font-weight:650}
+.app-window .page-heading p{font-size:17px;line-height:1.45;letter-spacing:-.55px;color:var(--text);margin-top:10px}
+.app-window .page-heading .eyebrow{display:none}
+.app-window :is(.panel,.stat-card,.task-card,.doc-card,.meeting-card,.space-list-card,.project-home-card){border-color:#edf1f6;border-radius:22px}
+.app-window :is(.view-switch,.pill-tabs){padding:7px;background:#fff;border:0;border-radius:16px}
+.app-window :is(.view-switch button,.pill-tabs button){min-height:44px;padding:9px 16px;border-radius:12px;font-size:16px;color:var(--text)}
+.app-window :is(.view-switch .selected,.pill-tabs .active){background:var(--forma-blue);color:#fff;border-color:var(--forma-blue);box-shadow:none}
+
+/* My tasks becomes a distinct workspace surface, with its controls inside it. */
+.app-window .page-my-tasks .list-toolbar{margin:0 0 28px;align-items:center}
+.app-window .page-my-tasks .list-toolbar>.search-field{min-height:45px;background:#fff;border-radius:12px}
+.app-window .page-my-tasks .my-view-toolbar{position:relative;margin:0;padding:26px 30px 18px;background:#fff;border:1px solid #edf1f6;border-bottom:0;border-radius:22px 22px 0 0}
+.app-window .page-my-tasks .my-view-toolbar>span{font-size:13px;color:var(--muted)}
+.app-window .page-my-tasks .my-view-toolbar .view-switch{padding:0;background:transparent}
+.app-window .page-my-tasks .my-view-toolbar .view-switch button{min-height:45px;font-size:16px}
+.app-window .page-my-tasks .my-view-toolbar+.kanban{margin:0;padding:12px 30px 30px;background:#fff;border:1px solid #edf1f6;border-top:0;border-radius:0 0 22px 22px;gap:16px;min-height:540px}
+.app-window .page-my-tasks .kanban-column{min-height:470px;padding:20px 16px;background:var(--forma-blue-soft);border:0;border-radius:20px}
+.app-window .page-my-tasks .column-heading{padding:4px 8px 20px;font-size:16px;gap:10px}
+.app-window .page-my-tasks .column-heading>h2{font-size:17px}
+.app-window .page-my-tasks .column-heading>span{background:#fff;color:var(--text);font-size:11px;border-radius:8px;padding:3px 7px}
+.app-window .page-my-tasks .column-empty{display:grid;place-items:center;min-height:164px;text-align:center;font-size:13px;color:var(--muted)}
+.app-window .page-my-tasks :is(.table-wrap,.visual-calendar){border-radius:22px}
+
+/* Inbox retains privacy boundaries, but exposes each personal stream as an airy work surface. */
+.app-window .page-inbox>.button{align-self:flex-end;margin:-70px 0 12px;z-index:1}
+.app-window .page-inbox .list-toolbar{margin-bottom:20px}
+.app-window .page-inbox .list-toolbar>select{background:#fff;border-color:#edf1f6;border-radius:12px;min-height:44px;padding-inline:14px}
+.app-window .page-inbox .inbox-panel{min-height:510px;border-radius:22px;overflow:hidden}
+.app-window .page-inbox .inbox-item{padding:23px 28px;border-color:#edf1f6}
+.app-window .page-inbox .inbox-item.unread{background:#fff}
+.app-window .page-inbox .notification-type{width:43px;height:43px;border-radius:13px;background:var(--forma-blue-soft);color:var(--forma-blue)}
+.app-window .page-inbox .inbox-item-content strong{font-size:15px;color:var(--text)}
+.app-window .page-inbox .inbox-item-content p{font-size:13px;color:var(--muted)}
+.app-window .page-inbox .inbox-item-content small{font-size:11px;color:var(--muted)}
+.app-window .page-inbox .privacy-footnote{justify-content:center;margin-top:18px;color:var(--forma-icon)}
+.app-window .page-inbox .inbox-panel>.empty{min-height:430px;background:transparent}
+.app-window .page-inbox .empty h3{font-size:23px;letter-spacing:-.7px;color:var(--text)}
+
+/* A referência clara é a base. Os temas já existentes continuam usando seus
+   próprios contrastes em vez de herdarem superfícies brancas desta camada. */
+:root[data-theme='dark'] .app-window{background:var(--bg)}
+:root[data-theme='dark'] .app-window :is(.main-content,.topbar){background:var(--bg)}
+:root[data-theme='dark'] .app-window .sidebar,:root[data-theme='hybrid'] .app-window .sidebar{background:var(--nav-bg);border-color:var(--nav-border)}
+:root[data-theme='dark'] .app-window .sidebar .nav-item,:root[data-theme='hybrid'] .app-window .sidebar .nav-item{color:var(--nav-text)}
+:root[data-theme='dark'] .app-window .sidebar .nav-item.active,:root[data-theme='hybrid'] .app-window .sidebar .nav-item.active{background:var(--nav-active);color:var(--app-focus)}
+:root[data-theme='dark'] .app-window :is(.topbar .refresh-data-button,.topbar .notification-button,.topbar .topbar-avatar,.view-switch,.pill-tabs,.page-my-tasks .my-view-toolbar,.page-my-tasks .my-view-toolbar+.kanban,.page-inbox .inbox-panel){background:var(--surface);border-color:var(--line)}
+:root[data-theme='dark'] .app-window .page-my-tasks .kanban-column{background:var(--soft)}
+:root[data-theme='dark'] .app-window :is(.page-my-tasks .column-heading>span,.page-inbox .inbox-item.unread){background:var(--bg);color:var(--text)}
+
+@media(min-width:901px){
+ .app-window.compact-navigation .sidebar{width:72px}
+ .compact-navigation .sidebar-brand{height:76px}
+ .app-window.compact-navigation .sidebar .nav-item{min-height:56px;margin:7px 0;border-radius:16px}
+ .app-window .main-content.page-home{max-width:1680px}
+}
+@media(max-width:1150px){
+ .app-window .main-content{padding:34px 32px 42px}
+ .app-window .topbar{padding:0 32px}
+ .app-window .page-heading h1{font-size:36px}
+}
+@media(max-width:900px){
+ .app-window .topbar{height:66px;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+ .app-window .main-content{padding:26px 18px 36px}
+ .app-window .topbar :is(.refresh-data-button,.notification-button,.topbar-avatar){width:36px;height:36px}
+ .app-window .quick-action-trigger{min-height:36px!important;width:36px!important;padding:0!important;border-radius:11px!important}
+ .app-window .page-heading{margin:2px 0 26px}
+ .app-window .page-heading h1{font-size:30px;letter-spacing:-1.3px}
+ .app-window .page-heading p{font-size:14px}
+ .app-window .page-inbox>.button{align-self:flex-start;margin:-14px 0 8px}
+ .app-window .page-my-tasks .my-view-toolbar{padding:16px;border-radius:17px 17px 0 0}
+ .app-window .page-my-tasks .my-view-toolbar+.kanban{padding:10px 14px 18px;border-radius:0 0 17px 17px;overflow:auto}
+ .app-window .page-my-tasks .kanban-column{min-width:245px;min-height:340px}
+}
+@media(max-width:560px){
+ .app-window .page-heading h1{font-size:28px}
+ .app-window :is(.view-switch button,.pill-tabs button){min-height:38px;padding:8px 11px;font-size:13px}
+ .app-window .page-my-tasks .list-toolbar{align-items:flex-start}
+ .app-window .page-inbox .inbox-panel{min-height:380px}
+ .app-window .page-inbox .inbox-item{padding:18px}
+}

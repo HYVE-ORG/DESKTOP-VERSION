@@ -1,0 +1,68 @@
+{
+  "name": "hyve-desktop",
+  "version": "0.2.1",
+  "private": true,
+  "description": "MVP local de colaboração com autorização no backend",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --env-file-if-exists=.env.media.local scripts/dev.mjs",
+    "dev:api": "node --env-file-if-exists=.env --env-file-if-exists=.env.media.local --import tsx apps/api/src/main.ts",
+    "dev:web": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "test": "tsx --test --test-concurrency=2 tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "build:web": "vite build",
+    "build:desktop": "vite build --mode desktop",
+    "build:api": "esbuild apps/api/src/main.ts --bundle --platform=node --format=cjs --packages=external --outfile=dist-api/main.cjs && esbuild apps/api/src/app.ts --bundle --platform=node --format=cjs --packages=external --outfile=dist-api/desktop.cjs && esbuild apps/api/src/provision.ts --bundle --platform=node --format=cjs --packages=external --outfile=dist-api/operator.cjs",
+    "build": "npm run typecheck && npm run build:web && npm run build:desktop && npm run build:api",
+    "supabase:check": "node --env-file-if-exists=.env --import tsx scripts/check-supabase.ts",
+    "supabase:check-central": "node --env-file-if-exists=.env --import tsx scripts/check-central.ts",
+    "start": "node --env-file-if-exists=.env --env-file-if-exists=.env.media.local dist-api/main.cjs",
+    "desktop": "electron apps/desktop/main.cjs",
+    "desktop:package": "npm run build && node scripts/package-desktop.mjs",
+    "desktop:installer": "npm run build && node scripts/build-installer.mjs"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "overrides": {
+    "@nestjs/platform-express": {
+      "multer": "2.5.0"
+    },
+    "miniflare": {
+      "undici": "7.30.1"
+    }
+  },
+  "dependencies": {
+    "@livekit/components-react": "2.9.24",
+    "@livekit/components-styles": "1.2.0",
+    "@nestjs/common": "11.2.7",
+    "@nestjs/core": "11.2.7",
+    "@nestjs/platform-express": "11.2.7",
+    "@phosphor-icons/react": "^2.1.10",
+    "electron-updater": "6.8.9",
+    "express": "5.3.0",
+    "gsap": "^3.15.0",
+    "livekit-client": "2.23.0",
+    "livekit-server-sdk": "2.19.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "socket.io": "4.8.4",
+    "socket.io-client": "4.8.4",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "4.7.0",
+    "electron": "45.0.0",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.28.2",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "7.3.7",
+    "wrangler": "4.152.0"
+  }
+}

@@ -1,0 +1,93 @@
+import { useState, useRef, type FormEvent } from 'react';
+import { BellIcon as Bell, AtIcon as AtSign, CheckIcon as Check, ChecksIcon as CheckCheck, PlusIcon as Plus, CalendarBlankIcon as CalendarDays, CaretLeftIcon as ChevronLeft, CaretRightIcon as ChevronRight, VideoCameraIcon as Video, ClockIcon as Clock3, FileTextIcon as FileText, MagnifyingGlassIcon as Search, FolderIcon as Folder, FileIcon as File, CloudArrowUpIcon as UploadCloud, DownloadIcon as Download, SquaresFourIcon as Grid2X2, ChatCircleIcon as MessageSquare, QuestionIcon as CircleHelp, ArrowUpRightIcon as ArrowUpRight, CheckCircleIcon as CheckCircle2, SpinnerGapIcon as LoaderCircle, TrashIcon as Trash2, DotsThreeIcon as MoreHorizontal, XIcon as X, ShieldIcon as Shield, PaperclipIcon as Paperclip, UsersIcon as Users, EnvelopeOpenIcon as MailOpen } from '@phosphor-icons/react';
+import { useWorkspace, Avatar, AvatarGroup, Empty, dateLabel, isManager } from './context';
+import { PageTitle } from './Work';
+import { VisualCalendar } from './Calendar';
+import { inContext } from './work-views';
+import { upload } from './api';
+import { dayIn } from '../../../packages/shared/date';
+export { TeamPage, ProfilePage, ReportsPage, SettingsPage } from './People';
+export function InboxPage() {
+    const { data, run, navigate, setDialog } = useWorkspace();
+    const [filter, setFilter] = useState('all'), [type, setType] = useState('all');
+    const notes = [...data.notifications].reverse().filter(n => (filter !== 'unread' || !n.readAt) && (filter !== 'read' || !!n.readAt) && (type === 'all' || n.type === type));
+    const open = async (n: typeof notes[number]) => {
+        try {
+            await run('inbox.read', { id: n.id, read: true });
+            if (n.resourceType === 'task')
+                setDialog({ kind: 'task-detail', id: n.resourceId });
+            else if (n.resourceType === 'conversation')
+                navigate(`chat/${n.resourceId}`);
+            else if (n.resourceType === 'event') {
+                navigate('calendar');
+                setDialog({ kind: 'meeting-preview', id: n.resourceId });
+            }
+            else
+                navigate('support');
+        }
+        catch { }
+    };
+    return <><PageTitle eyebrow="O QUE PRECISA DA SUA ATENÇÃO" title="Sua Inbox" description="Menções, próximas entregas e boas conversas, em um só lugar."><button className="button" disabled={!data.notifications.some(n => !n.readAt)} onClick={() => run('inbox.all', { cutoff: data.inboxCutoff }).catch(() => { })}><CheckCheck size={16}/>Marcar todas como lidas</button></PageTitle><div className="list-toolbar"><div className="pill-tabs"><button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Todas<span>{data.notifications.length}</span></button><button className={filter === 'unread' ? 'active' : ''} onClick={() => setFilter('unread')}>Não lidas<span>{data.notifications.filter(n => !n.readAt).length}</span></button><button className={filter === 'read' ? 'active' : ''} onClick={()=>setFilter('read')}><Check size={15}/>Lidas<span>{data.notifications.filter(n=>n.readAt).length}</span></button></div><select aria-label="Tipo de notificação" value={type} onChange={e => setType(e.target.value)}><option value="all">Todos os tipos</option><option value="mention">Menções</option><option value="assignment">Atribuições</option><option value="meeting">Reuniões</option><option value="system">Sistema</option></select></div><section className="panel inbox-panel">{notes.map(n => { const actor = data.people.find(p => p.id === n.actorId); return <article key={n.id} className={`inbox-item ${!n.readAt ? 'unread' : ''}`}><span className={`notification-type type-${n.type}`}>{n.type === 'mention' ? <AtSign size={19}/> : n.type === 'meeting' ? <CalendarDays size={19}/> : <CheckCircle2 size={19}/>}</span><button className="inbox-item-content" onClick={() => open(n)}><strong>{n.title}</strong><p><span>{actor?.name || 'Equipe'}</span>{n.type === 'mention' ? ' mencionou você.' : n.type === 'assignment' ? ' atribuiu uma entrega a você.' : ' compartilhou uma atualização.'}</p><small>{dateLabel(n.createdAt, { day: 'numeric', month: 'short' })} · {new Date(n.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></button><button className="icon-button" title={n.readAt ? 'Marcar como não lida' : 'Marcar como lida'} aria-label={n.readAt ? 'Marcar como não lida' : 'Marcar como lida'} onClick={() => run('inbox.read', { id: n.id, read: !n.readAt }).catch(() => { })}>{n.readAt ? <MailOpen size={18}/> : <Check size={18}/>}</button>{!n.readAt && <span className="unread-dot"/>}</article>; })}{!notes.length && <Empty icon={<InboxIcon />} title={filter === 'unread' ? 'Tudo em dia. Respire um pouco.' : 'Seu espaço para acompanhar o que importa.'}>{filter === 'unread' ? 'Você não tem notificações pendentes neste filtro.' : 'Quando alguém mencionar você, delegar uma tarefa ou marcar uma reunião, o contexto vai chegar aqui.'}</Empty>}</section><div className="privacy-footnote"><Shield size={14}/>Sua Inbox é pessoal. Recursos inacessíveis não aparecem no histórico nem no contador.</div></>;
+}
+function InboxIcon() { return <Bell size={29}/>; }
+export function CalendarPage() {
+    const { data, setDialog } = useWorkspace();
+    const tasks = data.tasks.filter(t => !t.archived && data.projects.some(p => p.id === t.projectId && !p.archived));
+    return <><PageTitle eyebrow="UM BOM DIA COMEÇA COM CONTEXTO" title="Calendário" description="Seu tempo, suas entregas e os próximos encontros da equipe.">{data.me.role !== 'user' && <><button className="button" onClick={() => setDialog({kind:'meeting-now'})}><Video size={17}/>Reunir agora</button><button className="button primary" onClick={() => setDialog({ kind: 'event' })}><Plus size={17}/>Novo evento</button></>}</PageTitle><VisualCalendar tasks={tasks} events={data.calendar} filters/></>;
+}
+export function MeetingsPage() {
+    const { data, setDialog, navigate } = useWorkspace();
+    const [filter, setFilter] = useState('upcoming');
+    const events = data.calendar.filter(e => e.meeting && (filter === 'all' || new Date(e.end) >= new Date())).sort((a, b) => a.start.localeCompare(b.start));
+    return <><PageTitle eyebrow="BOAS CONVERSAS MOVEM O TRABALHO" title="Reuniões" description="Encontros com contexto, pessoas e próximos passos claros.">{data.me.role !== 'user' && <><button className="button primary" onClick={() => setDialog({kind:'meeting-now'})}><Video size={17}/>Reunir agora</button><button className="button" onClick={() => setDialog({ kind: 'event' })}><Plus size={17}/>Agendar reunião</button></>}</PageTitle><div className="notice media-notice"><Video size={20}/><div><strong>{data.mediaConfigured?'Salas com áudio e vídeo disponíveis.':'Videoconferência ainda não conectada.'}</strong><p>{data.mediaConfigured?'Crie uma reunião na hora ou entre em uma reunião agendada. Dispositivos começam desligados.':'Uma sala multipessoa exige configurar o serviço de mídia; nenhum participante é simulado.'}</p></div></div><div className="list-toolbar"><div className="pill-tabs"><button className={filter === 'upcoming' ? 'active' : ''} onClick={() => setFilter('upcoming')}>Próximas</button><button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Todas</button></div></div><div className="meeting-grid">{events.map(e => <article className="meeting-card panel" key={e.id}><div className="meeting-card-top"><span className="number-icon lavender"><Video size={21}/></span><span>{e.instant?'Criada na hora':dateLabel(e.start, { day: 'numeric', month: 'long' })}</span></div><h2>{e.title}</h2><p>{data.projects.find(p => p.id === e.projectId)?.name}</p><div className="muted"><Clock3 size={15}/>{new Date(e.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: data.me.timezone })} — {new Date(e.end).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: data.me.timezone })}</div><footer><AvatarGroup ids={e.attendeeIds}/><button className="button" onClick={() => data.mediaConfigured?navigate(`meeting/${e.id}`):setDialog({kind:'meeting-preview',id:e.id})}>{data.mediaConfigured?'Entrar na sala':e.instant?'Abrir prévia':'Ver detalhes'}<ArrowUpRight size={14}/></button></footer></article>)}</div>{!events.length && <Empty icon={<Video size={28}/>} title="Nenhum encontro por enquanto">A coordenação pode organizar o próximo alinhamento da equipe.</Empty>}</>;
+}
+export function DocsPage({ projectId, workspaceId }: {
+    projectId?: string;
+    workspaceId?: string;
+}) {
+    const { data, setDialog } = useWorkspace();
+    const routeProject = projectId || location.hash.split('/')[1];
+    const projects = data.projects.filter(p => inContext({ projectId: p.id }, data.projects, projectId, workspaceId));
+    const [query, setQuery] = useState(''), [project, setProject] = useState(projects.some(p => p.id === routeProject) ? routeProject : 'all');
+    const docs = data.documents.filter(d => inContext(d, data.projects, projectId, workspaceId) && (project === 'all' || d.projectId === project) && d.title.toLowerCase().includes(query.toLowerCase()));
+    return <><PageTitle eyebrow="CONTEXTO QUE FICA COM A EQUIPE" title="Documentos" description="Briefings, decisões e conhecimento. Sempre no lugar certo."><button className="button primary" disabled={!projects.some(p => !p.archived)} onClick={() => setDialog({ kind: 'doc', projectId: project !== 'all' ? project : projects.find(p => !p.archived)?.id })}><Plus size={17}/>Novo documento</button></PageTitle><div className="list-toolbar"><label className="search-field"><Search size={15}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar documento…"/></label><select aria-label="Filtrar documentos por projeto" disabled={!!projectId} value={project} onChange={e => setProject(e.target.value)}>{!projectId && <option value="all">Todos os projetos deste espaço</option>}{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div><div className="docs-grid">{docs.map(d => <button key={d.id} className="doc-card panel" onClick={() => setDialog({ kind: 'doc', id: d.id, projectId: d.projectId })}><span className="document-icon"><FileText size={28}/></span><h3>{d.title}</h3><p>{d.body.replace(/[#*]/g, '').slice(0, 135)}{d.body.length > 135 ? '…' : ''}</p><footer><span>{data.projects.find(p => p.id === d.projectId)?.name}</span><small>v{d.version} · {dateLabel(d.updatedAt)}</small></footer></button>)}</div>{!docs.length && <Empty icon={<FileText size={27}/>} title="Dê um lugar às boas ideias">Um briefing, uma decisão ou uma ata podem começar aqui.</Empty>}</>;
+}
+export function FilesPage({ projectId }: {
+    projectId?: string;
+}) {
+    const { data, refresh, setDialog, toast } = useWorkspace();
+    const [project, setProject] = useState(projectId || data.projects[0]?.id || ''), [folder, setFolder] = useState('all'), [query, setQuery] = useState(''), [pending, setPending] = useState(''), [error, setError] = useState('');
+    const abort = useRef<AbortController | null>(null);
+    const input = useRef<HTMLInputElement>(null);
+    const folders = data.folders.filter(f => f.projectId === project && !f.archived), files = data.files.filter(f => f.scope === 'project' && f.scopeId === project && (folder === 'all' || f.folderId === folder) && f.name.toLowerCase().includes(query.toLowerCase()));
+    const send = async (f: File) => {
+        setPending(f.name);
+        setError('');
+        const controller = new AbortController();
+        abort.current = controller;
+        try {
+            await upload(f, 'project', project, folder === 'all' ? undefined : folder, controller.signal);
+            await refresh();
+            toast('Arquivo disponível para a equipe.');
+        }
+        catch (e) {
+            if ((e as Error).name === 'AbortError')
+                setError('Upload cancelado. O arquivo não foi confirmado.');
+            else
+                setError((e as Error).message);
+        }
+        finally {
+            setPending('');
+        }
+    };
+    return <><PageTitle eyebrow="MATERIAIS SEM PERDER O CONTEXTO" title="Arquivos" description="Referências, imagens e entregas organizadas por projeto.">{isManager(data, data.projects.find(p => p.id === project)) && <button className="button" onClick={() => setDialog({ kind: 'folder', projectId: project })}><Plus size={16}/>Nova pasta</button>}<button className="button primary" disabled={!project || !!pending || !!data.projects.find(p => p.id === project)?.archived} onClick={() => input.current?.click()}><UploadCloud size={17}/>Enviar arquivo</button><input ref={input} hidden type="file" accept="image/png,image/jpeg,image/gif,image/webp,.txt,.md,.csv,.json,.mp3,.wav,.ogg,.webm,.mp4" onChange={e => {
+            if (e.target.files?.[0])
+                send(e.target.files[0]);
+            e.target.value = '';
+        }}/></PageTitle><div className="list-toolbar"><label className="search-field"><Search size={15}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar arquivo…"/></label><select value={project} onChange={e => { setProject(e.target.value); setFolder('all'); }}>{data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div><div className="folder-grid"><button className={`folder-card ${folder === 'all' ? 'selected' : ''}`} onClick={() => setFolder('all')}><Folder size={29}/><span><strong>Todos os materiais</strong><small>{data.files.filter(f => f.scope === 'project' && f.scopeId === project).length} arquivos</small></span></button>{folders.map(f => <div className={`folder-card ${folder === f.id ? 'selected' : ''}`} key={f.id}><button onClick={() => setFolder(f.id)}><Folder size={29}/><span><strong>{f.name}</strong><small>{data.files.filter(file => file.folderId === f.id).length} arquivos</small></span></button>{isManager(data, data.projects.find(p => p.id === project)) && <button className="icon-button" aria-label={`Editar pasta ${f.name}`} onClick={() => setDialog({ kind: 'folder', id: f.id, projectId: project })}><MoreHorizontal size={17}/></button>}</div>)}</div>{pending && <div className="upload-progress"><LoaderCircle className="spin" size={18}/><span>Enviando {pending}…<progress aria-label="Transferência em andamento"/></span><button className="button small" onClick={() => abort.current?.abort()}>Cancelar</button></div>}{error && <div className="form-error" role="alert">{error}</div>}<div className="table-wrap"><table className="files-table"><thead><tr><th>Nome</th><th>Enviado por</th><th>Tamanho</th><th>Data</th><th /></tr></thead><tbody>{files.map(f => <tr key={f.id}><td><button className="file-name" onClick={() => setDialog({ kind: 'file-preview', id: f.id })}><span className={`file-icon ${f.mime.startsWith('image/') ? 'image' : 'generic'}`}><File size={19}/></span><strong>{f.name}</strong></button></td><td><span className="file-author"><Avatar person={data.people.find(p => p.id === f.uploaderId)} size={24}/>{data.people.find(p => p.id === f.uploaderId)?.name.split(' ')[0] || 'Equipe'}</span></td><td>{f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : (f.size / 1024).toFixed(1) + ' KB'}</td><td>{dateLabel(f.createdAt)}</td><td><a className="icon-button" href={`/api/files/${f.id}`} download={f.name} aria-label={`Baixar ${f.name}`}><Download size={17}/></a></td></tr>)}</tbody></table>{!files.length && <Empty icon={<UploadCloud size={29}/>} title="Um lugar para a próxima entrega">Envie uma imagem, um vídeo, áudio ou documento de texto para compartilhar.</Empty>}</div><div className="privacy-footnote"><Shield size={14}/>Até 15 MB por arquivo no modo local. Tipos de imagem, texto, áudio e vídeo validados; PDF/Office aguardam inspeção especializada.</div></>;
+}
+export function SupportPage() {
+    const { data, setDialog, run } = useWorkspace();
+    const [tab, setTab] = useState('guide');
+    return <><PageTitle eyebrow="VOCÊ NÃO PRECISA RESOLVER TUDO SOZINHO" title="Ajuda e suporte" description="Encontre o próximo passo ou conte para a gente o que aconteceu."><button className="button primary" onClick={() => setDialog({ kind: 'help' })}><Plus size={17}/>Pedir ajuda</button></PageTitle><div className="support-hero"><div className="support-icon"><CircleHelp size={36}/></div><h2>Como podemos ajudar?</h2><p>Um bom espaço de trabalho também é um espaço para perguntar.</p></div><div className="pill-tabs support-tabs"><button className={tab === 'guide' ? 'active' : ''} onClick={() => setTab('guide')}>Guia rápido</button><button className={tab === 'requests' ? 'active' : ''} onClick={() => setTab('requests')}>Minhas solicitações<span>{data.help.length}</span></button></div>{tab === 'guide' ? <div className="guide-grid">{[['Tarefas com um próximo passo claro', 'Admin e Coordenador criam e delegam. Usuário acompanha as suas entregas e pode movê-las para Em andamento ou Concluída.'], ['Conversas com contexto', 'Use o canal do projeto. / abre atalhos e @ permite mencionar participantes, sem ampliar o acesso de ninguém.'], ['Seu summary e foguinho', 'Cada primeira conclusão com seu crédito conta uma vez. Reabrir uma tarefa não gera uma nova entrega. Uma entrega por dia mantém a sequência.'], ['Seu perfil, do seu jeito', 'Bio, @, foto/capa, localização e cargo profissional ficam no seu servidor. Cargo profissional nunca altera seu nível de acesso.'], ['Privacidade no trabalho', 'Admin pode inspecionar chats do próprio servidor, inclusive diretos. Inbox e pedidos de ajuda permanecem pessoais.'], ['Algo não funcionou?', 'Descreva o objetivo, os passos e o erro. Não envie senha, token ou dados privados desnecessários. O suporte desta versão registra o pedido localmente, sem envio externo.']].map(([title, body], i) => <article key={title} className="guide-card panel"><span className="guide-index">0{i + 1}</span><h3>{title}</h3><p>{body}</p></article>)}</div> : <div className="panel support-requests">{data.help.map(h => <article key={h.id}><span className={`support-status ${h.status}`}>{h.status === 'open' ? 'Aberta' : 'Resolvida'}</span><div><h3>{h.title}</h3><small>Protocolo {h.id.slice(0, 8).toUpperCase()} · {dateLabel(h.createdAt)}</small><p>{h.body}</p></div>{h.status === 'open' && <button className="button small" onClick={() => run('help.resolve', { id: h.id }).catch(() => { })}><Check size={14}/>Resolvido por mim</button>}</article>)}{!data.help.length && <Empty icon={<MessageSquare size={27}/>} title="Nenhuma solicitação por aqui">Se precisar, seu próximo pedido de ajuda ganha um protocolo aqui.</Empty>}</div>}</>;
+}

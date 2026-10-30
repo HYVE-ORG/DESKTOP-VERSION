@@ -1,0 +1,24 @@
+import {execFileSync} from 'node:child_process';
+import {mkdir,readFile,writeFile,copyFile,rename} from 'node:fs/promises';
+import {resolve,dirname,join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+import {packageDesktop} from './package-desktop.mjs';
+import {releaseTrust,publishUpdateMetadata} from './release-updates.mjs';
+
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const trust=await releaseTrust(root);
+const folder=await packageDesktop({archive:false});
+execFileSync(process.execPath,[join(root,'node_modules/electron-builder/cli.js'),'--prepackaged',folder,'--win','nsis','--x64','--publish','never','--config','electron-builder.json'],{cwd:root,stdio:'inherit',windowsHide:true,env:{...process.env,CSC_IDENTITY_AUTO_DISCOVERY:'false',ELECTRON_BUILDER_COMPRESSION_LEVEL:'3'}});
+const {version}=JSON.parse(await readFile(join(root,'package.json'),'utf8'));
+const name=`Forma-Setup-${version}-x64.exe`,source=join(root,'release/installer-output',name);
+const content=await readFile(source);
+if(content.subarray(0,2).toString()!=='MZ'||content.length<1_000_000)throw new Error('Instalador Windows inválido.');
+const sha256=createHash('sha256').update(content).digest('hex');
+const downloads=join(root,'release/downloads');await mkdir(downloads,{recursive:true});
+await copyFile(source,join(downloads,name+'.tmp'));await rename(join(downloads,name+'.tmp'),join(downloads,name));
+const report={version,platform:'win32',arch:'x64',file:name,bytes:content.length,sha256,packagedFolder:folder,generatedAt:new Date().toISOString()};
+await writeFile(join(downloads,name+'.sha256'),sha256+'  '+name+'\n');
+await publishUpdateMetadata(root,trust,name,content,version);
+await writeFile(join(root,'release/installer-output/installer-report.json'),JSON.stringify(report,null,2));
+console.log(JSON.stringify(report,null,2));
